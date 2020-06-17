@@ -12,7 +12,6 @@ from tkinter import Tk, Toplevel, Button, Label, Entry, Text, END, Listbox, SING
 import datetime
 
 a3 = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-print(a3)
 
 root = Tk()
 
@@ -27,17 +26,14 @@ def save1():
         f" Contact creation time: {a3} \n Name: {entry1.get()} \n Surname: {entry2.get()} \n Phone number: {entry3.get()} \n Address: {entry4.get()} \n \n")
     my_file.close()
 
-
 def window2():
     tl = Toplevel(root)
     tl.title('Нове вікно. Мої контакти')
-    print('A')
 
     with open('my_contacts.txt', 'r') as f:
         nums = f.readlines()
     print(nums)
     f.close()
-    print('B')
 
     listbox = Listbox(tl, height=50, width=150, selectmode=SINGLE)
     list_of_files = nums
@@ -58,7 +54,6 @@ def window2():
                      command=clear_list
                      )
     button3.pack()
-
 
 label1 = Label(text="Введіть інформацію про контакт: ім'я", font='Arial 10')
 label2 = Label(text="Введіть інформацію про контакт: прізвище", font='Arial 10')
