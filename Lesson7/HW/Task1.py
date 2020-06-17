@@ -32,7 +32,6 @@ def window2():
 
     with open('my_contacts.txt', 'r') as f:
         nums = f.readlines()
-    print(nums)
     f.close()
 
     listbox = Listbox(tl, height=50, width=150, selectmode=SINGLE)
