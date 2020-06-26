@@ -1,4 +1,4 @@
-from tkinter import Tk, Toplevel, Button, Label, Entry, Text
+from tkinter import Tk, Button, Label, Entry
 import requests
 
 # з модуля tkinter import Tk
