@@ -4,119 +4,128 @@ import time
 import datetime
 import json
 
-a3 = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-
+app_run_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 root = Tk()
+label1 = Label(text='Для старту натисніть "Запуск гри"', font='Arial 20')
+label2 = Label(text='', font='Arial 20')
+entry = Entry(width=256)
+count = 0
 
-def game_launch():
-    time1 = time.time()
+def clear_count():
+    global count
+    count = 0
+
+def press_backspace(event):
+    global count
+    count = count + 1
+
+def getRandomPhrase():
     file = open('list_random_phrases.txt', 'r')
-    r = file.readlines()
-    r2 = [line.rstrip() for line in r]
-    random_phrase = random.choice(r2)
+    text = file.readlines()
+    splitedText = [line.rstrip() for line in text]
     file.close()
+    return random.choice(splitedText)
 
-    entry = Entry(width=256)
+def save_in_file(speed):
+    JSON_FILE_NAME = 'result_games.json'
+    results = {
+        'date': app_run_time,
+        'speed': speed,
+        'errors': count
+        }
 
-    label1 = Label(text='Введіть текст випадкової фрази:', font='Arial 20')
-    label2 = Label(text=f'{random_phrase}', font='Arial 20')
-    label1.pack()
-    label2.pack()
-    entry.pack()
+    data = json.load(open(JSON_FILE_NAME))
+
+    if type(data) is dict:
+        data = [data]
+
+    data.append(results)
+    with open(JSON_FILE_NAME, 'w') as outfile:
+        json.dump(data, outfile)
+
+def start_game():
+    clear_count()
+    startTime = time.time()
+    random_phrase = getRandomPhrase()
+    progress_label = 'Введіть текст випадкової фрази:'
+
+    if (label1["text"] != progress_label):
+        label1.config(text = progress_label)
+
+    label2.config(text = random_phrase)
+
+    entry.config(state='normal')
+    entry.delete(0, END)
+
+    entry.bind('<BackSpace>', press_backspace)
+
+    def onKeyPressed(event):
+        entered_text = entry.get()
+
+        if str(random_phrase) == str(entered_text):
+            entry.config(state = 'disabled')
+            random_phrase_entered()
+
+    entry.bind('<KeyRelease>', onKeyPressed)
+
+
 
     def random_phrase_entered():
-        path = entry.get()
-        if str(random_phrase) == str(path):
-            time2 = time.time()
-            time3 = time2 - time1
+        endTime = time.time()
+        speed = endTime - startTime
 
-            tl1 = Toplevel(root)
-            tl1.title('Ви ввели фразу вірно')
-            tl1.label3 = Label(tl1, text='Ви ввели фразу вірно')
-            tl1.label4 = Label(tl1, text=f'Швидкість набору тексту: {time3} с.')
-            tl1.label3.pack()
-            tl1.label4.pack()
+        result_window = Toplevel(root)
+        result_window.title('Ви ввели фразу вірно')
+        result_window.label3 = Label(result_window, text='Ви ввели фразу вірно')
+        result_window.label4 = Label(result_window, text=f'Швидкість набору тексту: {speed} с.')
+        result_window.label5 = Label(result_window, text=f'Кількість виправлень: {count}')
+        result_window.label3.pack()
+        result_window.label4.pack()
+        result_window.label5.pack()
 
-            JSON_FILE_NAME = 'result_games.json'
+        save_in_file(speed)
 
-            my_obj = {'Date and time of the game': a3,
-                      'Typing speed seconds': time3
-                      }
-
-            file_json = open(JSON_FILE_NAME, 'a')
-            json.dump(my_obj, file_json, indent="")
-            file_json.close()
-
-        else:
-            list_1 = list(random_phrase)
-            list_2 = list(path)
-            sum(a != b for a, b in zip(list_1, list_2))
-            abs(len(list_1) - len(list_2))
-
-            difference = sum(a != b for a, b in zip(list_1, list_2))
-            difference += abs(len(list_1) - len(list_2))
-
-            tl3 = Toplevel(root)
-            tl3.title('Ви ввели невірну випадкову фразу.')
-            tl3.label5 = Label(tl3, text='Ви ввели невірну випадкову фразу.')
-            tl3.label6 = Label(tl3, text=f'Кількість помилок: {difference}')
-            tl3.label5.pack()
-            tl3.label6.pack()
-
-    button3 = Button(root,
-                     text='Випадкову фразу введено',
-                     fg='black',
-                     bg='yellow',
-                     font='Arial 20',
-                     width=200,
-                     height=5,
-                     command=random_phrase_entered
-                     )
-
-    button3.pack()
-
-def result_games():
-    tl2 = Toplevel(root)
-    tl2.title('Результат ігор')
-
+def show_history():
+    history_window = Toplevel(root)
+    history_window.title('Результат ігор')
     file_json = open('result_games.json', 'r')
-    res = json.load(file_json)
+    data = json.load(file_json)
     file_json.close()
 
-    values_list = []
-    for i in res.items():
-        values_list.append(i)
+    listbox = Listbox(history_window, height=50, width=150, selectmode=SINGLE)
 
-    listbox = Listbox(tl2, height=50, width=150, selectmode=SINGLE)
-    list_of_files = list(values_list)
-    for i  in list_of_files:
-        listbox.insert(END, i)
+    for i in data:
+        row = f'Дата проходження: {i.get("date")}, Швидкість: {i.get("speed")}, Кількість помилок: {i.get("errors")}'
+        listbox.insert(END, row)
     listbox.pack()
 
-button1 = Button(root,
+start_button = Button(root,
                 text='Запуск гри',
                 fg='black',
                 bg='green',
                 font='Arial 20',
                 width=200,
                 height=5,
-                command=game_launch
+                command=start_game
                 )
 
-button2 = Button(root,
+history_button = Button(root,
                 text='Перегляд історії ігор',
                 fg='black',
                 bg='orange',
                 font='Arial 20',
                 width=200,
                 height=5,
-                command=result_games
+                command=show_history
                 )
 
 root.title('Game')
 root.geometry('1200x800')
 
-button1.pack()
-button2.pack()
+start_button.pack()
+history_button.pack()
+label1.pack()
+label2.pack()
+entry.pack()
 
 root.mainloop()
